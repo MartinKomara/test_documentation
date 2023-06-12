@@ -1,16 +1,25 @@
-name: build
-
-language: python # Set the build language to Python
-
-python: 3.8 # Set the version of Python to use
-
-branches: test_documentation # Set the branch to build from
-
-install:
-    - pip install mkdocs-material pymdown-extensions pygments # Install the required dependencies
-
-script: true # Skip script (Don't use this if one already exists)
-
-before_deploy:
-    - mkdocs build --verbose --clean # Build a local version of the docs 
-
+name: build 
+on:
+  push:
+    branches:
+      - master 
+      - main
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
+      - uses: actions/cache@v3
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      - run: pip install mkdocs-material 
+      - run: mkdocs gh-deploy --force
